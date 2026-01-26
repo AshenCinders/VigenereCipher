@@ -70,6 +70,22 @@ defmodule VCipher.Main do
     end
   end
 
+  @spec decode(String.t(), String.t()) :: :ok | :error
+  defp decode(raw_text, raw_key) do
+    ciphertext = CleanText.clean_text(raw_text)
+    key = CleanText.clean_text(raw_key)
+
+    message_values = Conversion.to_values(ciphertext)
+    key_values = Conversion.to_values(key)
+
+    message =
+      apply_key(message_values, key_values, false)
+      |> Conversion.to_letters()
+
+    # TODO not hardcode output
+    File.write!("message_output.txt", message)
+  end
+
   @spec apply_key([integer()], [integer()], boolean()) :: [integer()]
   defp apply_key(values, key, wants_encode) do
     func = fn {value, index} ->
