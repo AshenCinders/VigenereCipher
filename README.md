@@ -17,7 +17,9 @@ This example paragraph was written by a real human. Oh it is a great paragraph. 
 ```
 
 Encoding a message:
+
 `./vcipher --encode --key "thisisakey" < example_message.txt`
+
 or with shorthand `./vcipher -e -k thisisakey < example_message.txt`
 will output the ciphertext in a new file called `ciphertext_output.txt`:
 
@@ -26,7 +28,9 @@ joqhmmawtgxwigiyrktcmhålzåtaiiucigmslryhtuwzqiiöebhliixsrkkmtwpumgtkmibcbdzih
 ```
 
 Decoding a ciphertext:
+
 `./vcipher --decode --key "thisisakey" < ciphertext_output.txt`
+
 or with shorthand `./vcipher -d -k thisisakey < ciphertext_output.txt`
 will output the decoded message in a new file called `message_output.txt`:
 
