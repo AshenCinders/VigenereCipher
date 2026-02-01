@@ -6,7 +6,7 @@ Encrypt and decrypt plaintext in the Swedish alphabet (superset of Latin, with Ã
 
 To run any of the programs you need to have Elixir and a compatible Erlang OTP version installed.
 
-## Usage
+## Using `crypt`
 
 We encrypt and decrypt the `example_message.txt` file found in the repo's root folder.
 
@@ -35,3 +35,8 @@ will output the decoded message in a new file called `message_output.txt`:
 ```
 thisexampleparagraphwaswrittenbyarealhumanohitisagreatparagraphcertainlyworthreadingagainandagainandagain
 ```
+
+## Calculating letter frequency
+
+The repo includes a large textfile in swedish (`frequency_calc_sample.txt`) that has been used to calculate the Swedish letter frequency for generic text.
+Its copyright has expired, has been downloaded from https://runeberg.org/resaliten/ and been manually edited to remove metadata and information such as table of contents and page heading that could skew the calculation.
