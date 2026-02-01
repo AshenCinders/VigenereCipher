@@ -1,7 +1,7 @@
 defmodule Crypt do
-  alias VCipher.Configuration
-  alias VCipher.CleanText
-  alias VCipher.Conversion
+  alias Shared.Configuration
+  alias Shared.CleanText
+  alias Shared.Conversion
 
   @spec main([binary()]) :: :ok | :error
   def main(args) do

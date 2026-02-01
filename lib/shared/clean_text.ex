@@ -1,5 +1,5 @@
-defmodule VCipher.CleanText do
-  alias VCipher.Configuration
+defmodule Shared.CleanText do
+  alias Shared.Configuration
 
   @spec clean_text(String.t()) :: [String.grapheme()]
   def clean_text(message) do

@@ -1,5 +1,5 @@
-defmodule VCipher.Conversion do
-  alias VCipher.Configuration
+defmodule Shared.Conversion do
+  alias Shared.Configuration
 
   @spec to_values([String.grapheme()]) :: [integer()]
   def to_values(graphemes) do
