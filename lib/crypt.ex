@@ -1,4 +1,4 @@
-defmodule VCipher.Main do
+defmodule Crypt do
   alias VCipher.Configuration
   alias VCipher.CleanText
   alias VCipher.Conversion
@@ -8,6 +8,22 @@ defmodule VCipher.Main do
     {flags, _remaining, _invalid} = parse_flags(args)
     # TODO handle invalid
 
+    case read_input_text() do
+      :error -> :error
+      text -> dispatch(text, flags)
+    end
+  end
+
+  defp parse_flags(args) do
+    OptionParser.parse(args,
+      strict: [encode: :boolean, decode: :boolean, key: :string],
+      aliases: [e: :encode, d: :decode, k: :key]
+    )
+  end
+
+  @spec read_input_text() :: String.t() | :error
+  defp read_input_text() do
+    # TODO hangs on no input, dispatch to a process with timeout instead.
     case IO.read(:stdio, :eof) do
       :eof ->
         IO.puts("The text file was empty or errored!")
@@ -18,15 +34,8 @@ defmodule VCipher.Main do
         :error
 
       text ->
-        dispatch(text, flags)
+        text
     end
-  end
-
-  defp parse_flags(args) do
-    OptionParser.parse(args,
-      strict: [encode: :boolean, decode: :boolean, key: :string],
-      aliases: [e: :encode, d: :decode, k: :key]
-    )
   end
 
   @spec dispatch(String.t(), OptionParser.parsed()) :: :ok | :error

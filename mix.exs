@@ -1,4 +1,4 @@
-defmodule VigenereCipher.MixProject do
+defmodule VCipher.MixProject do
   use Mix.Project
 
   def project do
@@ -7,10 +7,10 @@ defmodule VigenereCipher.MixProject do
       version: "1.0.0",
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
-      deps: deps(),
-      # Make an escript binary instead of typical elixir application.
-      default_task: "escript.build",
-      escript: [main_module: VCipher.Main]
+      deps: deps()
+      # Programs are run with custom mix tasks.
+      # See /lib/mix/tasks for program entry points.
+      # mix crypt ... to run the crypt task.
     ]
   end
 
