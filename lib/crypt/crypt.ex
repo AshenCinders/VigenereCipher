@@ -2,13 +2,14 @@ defmodule Crypt do
   alias Shared.Configuration
   alias Shared.CleanText
   alias Shared.Conversion
+  alias Shared.Files
 
   @spec main([binary()]) :: :ok | :error
   def main(args) do
     {flags, _remaining, _invalid} = parse_flags(args)
     # TODO handle invalid
 
-    case read_input_text() do
+    case Files.read_input_text() do
       :error -> :error
       text -> dispatch(text, flags)
     end
@@ -19,23 +20,6 @@ defmodule Crypt do
       strict: [encode: :boolean, decode: :boolean, key: :string],
       aliases: [e: :encode, d: :decode, k: :key]
     )
-  end
-
-  @spec read_input_text() :: String.t() | :error
-  defp read_input_text() do
-    # TODO hangs on no input, dispatch to a process with timeout instead.
-    case IO.read(:stdio, :eof) do
-      :eof ->
-        IO.puts("The text file was empty or errored!")
-        :error
-
-      {:error, reason} ->
-        IO.puts("Failed to read input text file: " <> reason)
-        :error
-
-      text ->
-        text
-    end
   end
 
   @spec dispatch(String.t(), OptionParser.parsed()) :: :ok | :error
