@@ -7,4 +7,8 @@ defmodule Shared.Configuration do
   def freq_path() do
     "fraction_map.json"
   end
+
+  def max_key_length_to_try do
+    16
+  end
 end
