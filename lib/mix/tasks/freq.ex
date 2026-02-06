@@ -5,6 +5,7 @@ defmodule Mix.Tasks.Freq do
   use Mix.Task
 
   @impl Mix.Task
+  @spec run([binary()]) :: :ok | :error
   def run(args) do
     Freq.main(args)
   end

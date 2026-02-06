@@ -1,5 +1,6 @@
 defmodule Shared.Files do
   alias Shared.Configuration
+  alias Shared.FractionMap
 
   @spec read_input_text() :: String.t() | :error
   def read_input_text() do
@@ -18,11 +19,13 @@ defmodule Shared.Files do
     end
   end
 
+  @spec force_read_freq_fraction_map() :: FractionMap.t()
   def force_read_freq_fraction_map() do
     File.read!(Configuration.freq_path())
     |> Poison.decode!(as: %{})
   end
 
+  @spec force_write_freq_fraction_map(FractionMap.t()) :: :ok
   def force_write_freq_fraction_map(map) do
     json = Poison.encode!(map, pretty: true)
     File.write!(Configuration.freq_path(), json)

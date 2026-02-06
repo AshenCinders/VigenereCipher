@@ -5,6 +5,7 @@ defmodule Mix.Tasks.Crypt do
   use Mix.Task
 
   @impl Mix.Task
+  @spec run([binary()]) :: :ok | :error
   def run(args) do
     Crypt.main(args)
   end
