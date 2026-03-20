@@ -3,6 +3,8 @@ defmodule Crack do
   alias Shared.Configuration
   alias Shared.Files
   alias Shared.FractionMap
+  alias Shared.Conversion
+  alias Crypt
 
   @spec main([binary()]) :: :ok | :error
   def main(args) do
@@ -47,18 +49,28 @@ defmodule Crack do
     graphemes = CleanText.clean_text(raw_text)
 
     # Lazily run test_length on every length between 1 and max.
-    Stream.unfold(
-      1,
-      fn length -> {test_length(graphemes, frac_map, length), length + 1} end
-    )
-    |> Enum.take(max_key_length)
+    brute_force_result =
+      Stream.unfold(
+        1,
+        fn length -> {test_length(graphemes, frac_map, length), length + 1} end
+      )
+      |> Enum.take(max_key_length)
 
-    # TODO which is lowest, recalculate and try to solve that one.
+    best_guess = elem(Enum.min_by(brute_force_result, fn {deviation, _guess} -> deviation end), 1)
+
+    IO.puts("\nBrute-force attempt finished, the best key-guess is: ")
+    IO.inspect(best_guess)
+    IO.puts("Results for length checks with deviation: ")
+    IO.inspect(brute_force_result)
+
+    IO.puts("\nRunning automatic decode from best guess..")
+    Crypt.decode(raw_text, best_guess)
+    IO.puts("Finished decoding. See message output text file")
 
     :ok
   end
 
-  @spec test_length([String.grapheme()], FractionMap.t(), integer()) :: float()
+  @spec test_length([String.grapheme()], FractionMap.t(), integer()) :: {float(), String.t()}
   defp test_length(graphemes, real_frac_map, specific_length) do
     # Assume graphemes are interleaved per-element by some key of length specific_length.
     # Put graphemes affected by the same key letter into their own list.
@@ -82,14 +94,24 @@ defmodule Crack do
     # Find the best matching solution for each of the Caesar ciphers.
     # Then calculate a weighted deviation against the ideal letter frequencies.
     # Sum the deviations together and divide by our length guess to get a number
-    # (normalized deviation) that can be compared against other length guesses.
-    caesar_frac_maps
-    |> Enum.map(fn current -> find_best_caesar_match(current, real_frac_map) end)
-    |> Enum.map(fn {deviation, _best_match} -> deviation end)
-    |> Enum.reduce(0, fn deviation, sum -> sum + deviation end)
-    # TODO remove
-    |> IO.inspect()
-    |> then(fn sum -> sum / specific_length end)
+    # (homebrewed normalized deviation) that can be compared against other length guesses.
+    best_caesars =
+      caesar_frac_maps
+      |> Enum.map(fn current -> find_best_caesar_match(current, real_frac_map) end)
+
+    normalized_deviation =
+      best_caesars
+      |> Enum.map(fn {deviation, _best_letter} -> deviation end)
+      |> Enum.reduce(0, fn deviation, sum -> sum + deviation end)
+      |> then(fn sum -> sum / specific_length end)
+
+    key_guess =
+      best_caesars
+      |> Enum.map(fn {_deviation, best_letter} -> best_letter end)
+      |> Conversion.to_letters()
+      |> Enum.join()
+
+    {normalized_deviation, key_guess}
   end
 
   @spec uninterleave_caesar([String.grapheme()], integer(), integer()) :: [String.grapheme()]
@@ -102,16 +124,54 @@ defmodule Crack do
     |> Enum.map(fn {grapheme, _index} -> grapheme end)
   end
 
+  # (Visually) put both maps in ordered lines. Each element in one map corresponds to another.
+  # Calculate the summed deviation of all corresponding map elements (|a1 - b1| + |a2 - b2| + ...).
+  # Note the result down, and rotate one map forward one step,
+  # so that each element has a new corresponding element in the other map.
+  # Keep rotating and calculating summed deviation for all possible ordered match-ups.
+  # Return the best match-up, which has the lowest deviation.
+  # The rotation that was the best (hopefully) corresponds to a letter in the key.
+  # E.g. if best rotation was with offset 4, then the letter is "e".
   @spec find_best_caesar_match(FractionMap.t(), FractionMap.t()) ::
           {float(), integer()}
   defp find_best_caesar_match(curr_frac_map, real_frac_map) do
-    # TODO order both alphabetically or by fraction but both must be same, then rotate a full length of iterations and compare weighted deviation
-    # deviation = (alphabet_length - frac_descending_position) * frac
-    # net_deviation = abs(deviation_a - deviation_b)
-    # or something like that
-    # need to do this for all elems and sum together
+    Stream.unfold(0, fn rot_offset ->
+      {sum_deviation(real_frac_map, curr_frac_map, rot_offset), rot_offset + 1}
+    end)
+    |> Enum.take(Configuration.alphabet_length())
+    |> Enum.min_by(fn {deviation, _rotation} -> deviation end)
+  end
 
-    # {deviation, key_offset} what the caesar key is
-    {0.0, 0}
+  @spec sum_deviation(FractionMap.t(), FractionMap.t(), integer()) :: {float(), integer()}
+  defp sum_deviation(real_frac_map, curr_frac_map, rot_offset) do
+    length = Configuration.alphabet_length()
+    alphabet = Configuration.alphabet() |> String.graphemes()
+
+    Enum.map(0..(length - 1), fn i ->
+      real_weight = Map.fetch!(real_frac_map, Enum.at(alphabet, i))
+
+      curr_weight =
+        Map.fetch!(curr_frac_map, Enum.at(alphabet, Integer.mod(i + rot_offset, length)))
+
+      index_for_weights =
+        Enum.find_index(sorted_alphabet(real_frac_map), fn elem ->
+          elem == Enum.at(alphabet, i)
+        end)
+
+      # Weight is inverse to index in alphabet list, first gets highest weight, last gets 0 weight.
+      real_deviation = (length - index_for_weights - 1) * real_weight
+      curr_deviation = (length - index_for_weights - 1) * curr_weight
+      abs(real_deviation - curr_deviation)
+    end)
+    |> Enum.sum()
+    |> then(fn sum -> {sum, rot_offset} end)
+  end
+
+  # Alphabet descending by weight.
+  @spec sorted_alphabet(FractionMap.t()) :: [String.grapheme()]
+  defp sorted_alphabet(frac_map) do
+    Map.to_list(frac_map)
+    |> Enum.sort(fn {_g1, w1}, {_g2, w2} -> w1 >= w2 end)
+    |> Enum.map(fn {grapheme, _weight} -> grapheme end)
   end
 end

@@ -39,8 +39,9 @@ defmodule Crypt do
     end
   end
 
+  # Public as it may be used by other sub-programs.
   @spec encode(String.t(), String.t()) :: :ok | :error
-  defp encode(raw_text, raw_key) do
+  def encode(raw_text, raw_key) do
     message = CleanText.clean_text(raw_text)
     key = CleanText.clean_text(raw_key)
 
@@ -63,8 +64,9 @@ defmodule Crypt do
     end
   end
 
+  # Public as it may be used by other sub-programs.
   @spec decode(String.t(), String.t()) :: :ok | :error
-  defp decode(raw_text, raw_key) do
+  def decode(raw_text, raw_key) do
     ciphertext = CleanText.clean_text(raw_text)
     key = CleanText.clean_text(raw_key)
 
