@@ -62,4 +62,30 @@ This outputs the result in the `fraction_map.json` file, which gets used by the 
 
 ## Cracking a Swedish Vigenère ciphertext using `crack`
 
-TODO
+To test out the brute-force cracking method, we can use the raw text that the supplied letter frequencies are calculated from.
+First we encrypt the sample text:
+
+`mix crypt -e -k secretkey < frequency_calc_sample.txt`
+
+We then attempt to crack the ciphertext:
+
+`mix crack --brute-force < ciphertext_output.txt`
+
+or with shorthand `mix crack -b < ciphertext_output.txt`
+which calculates and displays the best key guess as well as the best results for all different length guesses.
+
+We get this back as output in the shell:
+
+```
+Brute-force attempt finished, the best key-guess is:
+"secretkey"
+```
+
+and the program automatically decrypts the text with the best guess in a new file `message_ouput.txt`
+
+By default the max key length that will be checked is `16`.
+However, you can change this by supplying another argument `--max-key-length` or `-m` with a number.
+E.g. `mix crack -b -m 20 < ciphertext_output.txt`
+
+Note that the longer the encrypted message is and the more it matches typical Swedish text, the better the cracker will do.
+This means that for very short texts it may be unable to find the correct key or one that is close to correct.
