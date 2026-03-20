@@ -61,7 +61,7 @@ defmodule Crack do
     IO.puts("\nBrute-force attempt finished, the best key-guess is: ")
     IO.inspect(best_guess)
     IO.puts("Results for length checks with deviation: ")
-    IO.inspect(brute_force_result)
+    IO.inspect(brute_force_result, limit: :infinity)
 
     IO.puts("\nRunning automatic decode from best guess..")
     Crypt.decode(raw_text, best_guess)
